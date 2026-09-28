@@ -1,0 +1,21 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test
+        run: swift test
+      - name: Build app bundle
+        run: scripts/build-app.sh
+      - name: Zip
+        run: cd build && ditto -c -k --keepParent ClaudeBar.app ClaudeBar.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ClaudeBar
+          path: build/ClaudeBar.zip
