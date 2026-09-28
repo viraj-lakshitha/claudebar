@@ -2,20 +2,22 @@ name: Build
 
 on:
   push:
+    branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Test
         run: swift test
       - name: Build app bundle
         run: scripts/build-app.sh
       - name: Zip
         run: cd build && ditto -c -k --keepParent ClaudeBar.app ClaudeBar.zip
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: ClaudeBar
           path: build/ClaudeBar.zip

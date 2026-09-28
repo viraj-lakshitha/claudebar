@@ -44,7 +44,8 @@ final class AppModel: ObservableObject {
         refresh()
         updateHotKey()
         timer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.refresh() }
+            guard let self else { return }
+            Task { @MainActor in self.refresh() }
         }
     }
 
@@ -172,7 +173,8 @@ final class AppModel: ObservableObject {
     private func updateHotKey() {
         if hotKeyEnabled, hotKey == nil {
             hotKey = HotKey(keyCode: HotKey.keyC, modifiers: HotKey.controlOptionCommand) { [weak self] in
-                Task { @MainActor in self?.toggle() }
+                guard let self else { return }
+                Task { @MainActor in self.toggle() }
             }
         } else if !hotKeyEnabled {
             hotKey = nil
