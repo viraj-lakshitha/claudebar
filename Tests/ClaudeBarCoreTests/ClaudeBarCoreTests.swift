@@ -168,15 +168,16 @@ final class AccountSwitcherTests: XCTestCase {
         let (a, b) = try captureBoth(switcher)
 
         // B's tokens get rotated by Claude Code while B is active.
-        live.blob = credentialBlob("b2", plan: "pro")
+        let rotated = credentialBlob("b2", plan: "pro")
+        live.blob = rotated
 
         try switcher.switchTo(a.id)
         XCTAssertEqual(live.blob, credentialBlob("a1"))
         XCTAssertEqual(try OAuthAccountInfo(json: XCTUnwrap(config.account)).accountUuid, "A")
-        XCTAssertEqual(vault.items[b.id]?.credentialBlob, credentialBlob("b2"))
+        XCTAssertEqual(vault.items[b.id]?.credentialBlob, rotated)
 
         try switcher.switchTo(b.id)
-        XCTAssertEqual(live.blob, credentialBlob("b2"))
+        XCTAssertEqual(live.blob, rotated)
         XCTAssertEqual(try OAuthAccountInfo(json: XCTUnwrap(config.account)).accountUuid, "B")
     }
 
