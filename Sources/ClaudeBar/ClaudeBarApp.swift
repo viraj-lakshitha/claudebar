@@ -6,15 +6,13 @@ struct ClaudeBarApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MenuContent(model: model)
+            PopoverView(model: model)
         } label: {
-            HStack(spacing: 3) {
-                Image(systemName: model.activeProfile == nil ? "person.crop.circle.badge.questionmark" : "person.2.circle")
-                if let active = model.activeProfile {
-                    Text(active.shortTitle)
-                }
+            HStack(spacing: 4) {
+                Image(systemName: model.activeProfile == nil ? "person.crop.circle.badge.questionmark" : "person.crop.circle.fill")
+                Text(model.menuBarTitle)
             }
         }
-        .menuBarExtraStyle(.menu)
+        .menuBarExtraStyle(.window)
     }
 }

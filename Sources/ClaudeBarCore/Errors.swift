@@ -11,6 +11,7 @@ public enum ClaudeBarError: LocalizedError, Equatable {
     case unsavedCurrentLogin(email: String)
     case keychain(String)
     case commandFailed(String)
+    case usageUnauthorized
 
     public var errorDescription: String? {
         switch self {
@@ -34,6 +35,9 @@ public enum ClaudeBarError: LocalizedError, Equatable {
             return "Keychain error: \(message)"
         case .commandFailed(let message):
             return message
+        case .usageUnauthorized:
+            return "Sign-in expired. Switch to this account and run `claude` to refresh it."
+
         }
     }
 }

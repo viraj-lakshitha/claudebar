@@ -10,7 +10,7 @@ struct SettingsView: View {
         Form {
             Section("Accounts") {
                 if model.profiles.isEmpty {
-                    Text("No accounts saved. Use “Save Current Login…” from the menu bar.")
+                    Text("No accounts saved yet.")
                         .foregroundStyle(.secondary)
                 }
                 ForEach(model.profiles) { profile in
@@ -29,6 +29,11 @@ struct SettingsView: View {
                         Button("Remove", role: .destructive) { model.remove(profile) }
                     }
                 }
+            }
+
+            Section {
+                Button("Add Account…") { model.addAccount() }
+                    .disabled(!model.canAddProfile)
             }
 
             Section("General") {

@@ -256,3 +256,50 @@ final class ParsingTests: XCTestCase {
         XCTAssertEqual(ClaudeKeychain.quote(#"a "b""#), #""a \"b\"""#)
     }
 }
+
+final class UsageTests: XCTestCase {
+    func testParsesUsageResponse() throws {
+        let json = """
+        {
+          "five_hour": {"utilization": 23.0, "resets_at": "2026-09-28T19:59:59.943648+00:00"},
+          "seven_day": {"utilization": 41.5, "resets_at": "2026-10-02T15:00:00Z"},
+          "seven_day_opus": {"utilization": 0, "resets_at": null},
+          "seven_day_oauth_apps": null,
+          "extra_usage": {"is_enabled": false}
+        }
+        """
+        let snapshot = try UsageSnapshot.parse(Data(json.utf8))
+        XCTAssertEqual(snapshot.windows.map(\.key), ["five_hour", "seven_day", "seven_day_opus"])
+        XCTAssertEqual(snapshot.session?.utilization, 23)
+        XCTAssertEqual(snapshot.session?.resetsAt, Date(timeIntervalSince1970: 1_790_625_599))
+        XCTAssertEqual(snapshot.windows[1].resetsAt, Date(timeIntervalSince1970: 1_790_953_200))
+        XCTAssertNil(snapshot.windows[2].resetsAt)
+        XCTAssertEqual(snapshot.windows.map(\.title), ["Session (5h)", "Weekly", "Weekly · Opus"])
+    }
+
+    func testRejectsNonObject() {
+        XCTAssertThrowsError(try UsageSnapshot.parse(Data("[]".utf8)))
+    }
+
+    func testCredentialTokenAndExpiry() {
+        let info = CredentialInfo(blob: credentialBlob("tok"))
+        XCTAssertEqual(info.accessToken, "tok")
+        XCTAssertFalse(info.isExpired(now: Date(timeIntervalSince1970: 1_767_225_600 - 3600)))
+        XCTAssertTrue(info.isExpired(now: Date(timeIntervalSince1970: 1_767_225_600 + 1)))
+        XCTAssertTrue(CredentialInfo(blob: Data("{}".utf8)).isExpired())
+    }
+
+    func testCredentialForInactiveProfileComesFromVault() throws {
+        let live = FakeLive(credentialBlob("a1"))
+        let config = FakeConfig(accountJSON("A", "a@x.com"))
+        let switcher = try AccountSwitcher(live: live, config: config, vault: FakeVault(), store: FakeStore())
+        let a = try switcher.captureCurrent()
+        live.blob = credentialBlob("b1")
+        config.account = accountJSON("B", "b@x.com")
+        let b = try switcher.captureCurrent()
+        live.blob = credentialBlob("b2")
+
+        XCTAssertEqual(try switcher.credential(for: a.id)?.accessToken, "a1")
+        XCTAssertEqual(try switcher.credential(for: b.id)?.accessToken, "b2")
+    }
+}

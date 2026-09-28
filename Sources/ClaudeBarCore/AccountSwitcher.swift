@@ -48,6 +48,16 @@ public final class AccountSwitcher {
         )
     }
 
+    /// The newest known credential for a profile: live if it's the active
+    /// account, otherwise the saved snapshot.
+    public func credential(for id: UUID) throws -> CredentialInfo? {
+        guard let profile = profiles.first(where: { $0.id == id }) else { return nil }
+        if let login = try currentLogin(), login.account.accountUuid == profile.accountUuid {
+            return login.credential
+        }
+        return try vault.load(id).map { CredentialInfo(blob: $0.credentialBlob) }
+    }
+
     public func profile(matching login: LiveLogin) -> Profile? {
         profiles.first { $0.accountUuid == login.account.accountUuid }
     }
